@@ -300,10 +300,12 @@ def byte_printer(string):
 		num = num + answer
 	return chr(num)
 
+
 def char_to_bit(char):
 	num = ord(char)
 	ans = bin(num)
 	return ans[2:]
+
 
 def make_eight_bit(num):
 	bin_str = num
@@ -319,9 +321,7 @@ if __name__ == '__main__':
 	var = huffmanEncode(temp_tree)
 	var.open('data.dat')
 	var.run()
-	print 'encoding complete'
 	dec = huffmanDecode(temp_tree)
 	dec.run()
-	print 'decoding complete'
 
 	
