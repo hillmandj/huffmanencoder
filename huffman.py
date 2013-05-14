@@ -90,6 +90,101 @@ class Tree:
 	def prn(self):
 		print self.head.getData()
 
+class huffmanEncode:
+	def __init__(self, binary_tree):
+		self.binary_tree = binary_tree
+
+	def open(self, new_file):
+		f = open(new_file, 'r')
+		return f
+
+	def run(self):
+			#open file and read in text
+		f = askopenfile(title='Please select a file to compress')
+		string_input = f.read()
+
+		#create list of list, with each inner list containing a character and it's frequency
+		ary = [[i, string_input.count(i)] for i in string_input]
+
+		#remove duplicate values from the list	
+		final_list = removeDuplicates(ary)
+
+		#create list of trees, each containing a node with a [character, frequency] as data
+		tree_ary = TreeAry(final_list)
+
+		#perform huffmanStep on tree_ary
+		for i in range(len(tree_ary) - 1):
+			huffmanStep(tree_ary)
+
+		#create encodings for each character using tree and post_traverse recursive function
+		for i in tree_ary:
+			i.post_traverse()
+
+		#take the entire string (characters from file) and encode them using the encode function
+		encoded_ary = encode(string_input)
+
+		#take the encoded array and create a new array where each item's length is equal to 8 bits
+		eight_bit_ary = create_eight_bit_strings(encoded_ary)
+
+		#open files and write encodings to separate file
+		f = open("huffmanOutput.dat", "wb")
+		g = open("huffmanTree.dat", "w")
+		g.write(str(encodings))
+		g.close()
+
+		#for every 8 bit item in the array, write the corresponding character to the output file
+		for i in eight_bit_ary:
+			d = byte_printer(i)
+			f.write(d)
+		f.close()
+
+class huffmanDecode:
+	def __init__(self, binary_tree):
+		self.binary_tree = binary_tree
+
+	def run(self):
+		#open file to extract encodings, afterwards, convert to dictionary
+		f = open('huffmanTree.dat', 'r')
+		encodings_str = f.readline()
+		encodings_dict = eval(encodings_str)
+
+		#recreate huffman tree using encodings and recursive function addNode
+		temp = TreeNode(None)
+		huffmanTree = Tree(temp)
+		for k, v in encodings_dict.items():
+			huffmanTree.addNode(k, v)
+
+		#open up encoded file, the goal is to take in each character and put it into a list
+		#we then need to convert each character into a binary string, and then make sure that
+		#each string's length is equal to 8 bits. We then join all of the bits into one string
+		#called binary_input
+		in_file = open('huffmanOutput.dat', 'r')
+		binary_input = ''
+		for i in in_file:
+			d = list(i)
+			new_ary = [char_to_bit(x) for x in d]
+			eight_bit_ary = [make_eight_bit(i) for i in new_ary]
+			temp = ''.join(eight_bit_ary)
+			binary_input += temp
+		in_file.close()
+
+		current_node = huffmanTree.head
+		final_str = ''
+		for digit in binary_input:
+			if current_node.hasCharacter():
+				final_str += current_node.getData()
+				current_node = huffmanTree.head
+			if digit == '0':
+				current_node = current_node.left
+			if digit == '1':
+				current_node = current_node.right
+
+		#print final_str
+		out_file = open('huffmanFinal.dat', 'w')
+		for i in final_str:
+			out_file.write(i)
+		out_file.close()
+
 
 def removeDuplicates(ary):
 	'''(list) -> list
@@ -219,84 +314,14 @@ def make_eight_bit(num):
 
 
 if __name__ == '__main__':
-	#open file and read in text
-	f = askopenfile(title='Please select a file to compress')
-	string_input = f.read()
+	temp_node = TreeNode()
+	temp_tree = Tree(temp_node)
+	var = huffmanEncode(temp_tree)
+	var.open('data.dat')
+	var.run()
+	print 'encoding complete'
+	dec = huffmanDecode(temp_tree)
+	dec.run()
+	print 'decoding complete'
 
-	#create list of list, with each inner list containing a character and it's frequency
-	ary = [[i, string_input.count(i)] for i in string_input]
-
-	#remove duplicate values from the list	
-	final_list = removeDuplicates(ary)
-
-	#create list of trees, each containing a node with a [character, frequency] as data
-	tree_ary = TreeAry(final_list)
-
-	#perform huffmanStep on tree_ary
-	for i in range(len(tree_ary) - 1):
-		huffmanStep(tree_ary)
-
-	#create encodings for each character using tree and post_traverse recursive function
-	for i in tree_ary:
-		i.post_traverse()
-
-	#take the entire string (characters from file) and encode them using the encode function
-	encoded_ary = encode(string_input)
-
-	#take the encoded array and create a new array where each item's length is equal to 8 bits
-	eight_bit_ary = create_eight_bit_strings(encoded_ary)
-
-	#open files and write encodings to separate file
-	f = open("huffmanOutput.dat", "wb")
-	g = open("huffmanTree.dat", "w")
-	g.write(str(encodings))
-	g.close()
-
-	#for every 8 bit item in the array, write the corresponding character to the output file
-	for i in eight_bit_ary:
-		d = byte_printer(i)
-		f.write(d)
-	f.close()
-
-	#open file to extract encodings, afterwards, convert to dictionary
-	f = open('huffmanTree.dat', 'r')
-	encodings_str = f.readline()
-	encodings_dict = eval(encodings_str)
-
-	#recreate huffman tree using encodings and recursive function addNode
-	temp = TreeNode(None)
-	huffmanTree = Tree(temp)
-	for k, v in encodings_dict.items():
-		huffmanTree.addNode(k, v)
-
-	#open up encoded file, the goal is to take in each character and put it into a list
-	#we then need to convert each character into a binary string, and then make sure that
-	#each string's length is equal to 8 bits. We then join all of the bits into one string
-	#called binary_input
-	in_file = open('huffmanOutput.dat', 'r')
-	binary_input = ''
-	for i in in_file:
-		d = list(i)
-		new_ary = [char_to_bit(x) for x in d]
-		eight_bit_ary = [make_eight_bit(i) for i in new_ary]
-		temp = ''.join(eight_bit_ary)
-		binary_input += temp
-	in_file.close()
-
-	current_node = huffmanTree.head
-	final_str = ''
-	for digit in binary_input:
-		if current_node.hasCharacter():
-			final_str += current_node.getData()
-			current_node = huffmanTree.head
-		if digit == '0':
-			current_node = current_node.left
-		if digit == '1':
-			current_node = current_node.right
-
-	#print final_str
-	out_file = open('huffmanFinal.dat', 'w')
-	for i in final_str:
-		out_file.write(i)
-	out_file.close()
-
+	
