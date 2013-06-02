@@ -20,6 +20,10 @@ class TreeNode:
 	def getRight(self):
 		return self.right
 
+	#post_traverse is the function that recursively traverses the tree and generates the encodings
+	#for each character. It adds values to the encodings depending on whether it goes left or right
+	#when it hits a leaf of the tree with a character, it adds that character and the corresponding
+	#encoding to the encodings dictionary.
 	def post_traverse(self, encoding):
 		if self.left != None:
 			encoding += '0'
@@ -32,6 +36,8 @@ class TreeNode:
 		if self.getData()[0] != None:
 			encodings[self.getData()[0]] = encoding
 
+	#prn_traverse is a helper function. It is not called in the actual process of encoding/decoding
+	#but it was useful for troubleshooting, and for figuring out how totraverse the tree
 	def prn_traverse(self, location=''):
 		print location, self.getData()
 		if self.left != None:
@@ -43,6 +49,8 @@ class TreeNode:
 			self.right.prn_traverse(location)
 			location = location[0:-1]
 
+	#find_traverse is a helper function. It is not called in the actual process of encoding/decoding
+	#but it was useful by showing me how to get to the 'leaves' of the tree. 
 	def find_traverse(self, destination=''):
 		if destination == '':
 			return self.getData()
@@ -98,8 +106,8 @@ class huffmanEncode:
 		f = open(new_file, 'r')
 		return f
 
-	def run(self):
-			#open file and read in text
+	def Encode(self):
+		#open file and read in text
 		f = askopenfile(title='Please select a file to compress')
 		string_input = f.read()
 
@@ -128,9 +136,8 @@ class huffmanEncode:
 
 		#open files and write encodings to separate file
 		f = open("huffmanOutput.dat", "wb")
-		g = open("huffmanTree.dat", "w")
-		g.write(str(encodings))
-		g.close()
+		f.write(str(encodings))
+		f.write('\n')
 
 		#for every 8 bit item in the array, write the corresponding character to the output file
 		for i in eight_bit_ary:
@@ -142,10 +149,10 @@ class huffmanDecode:
 	def __init__(self, binary_tree):
 		self.binary_tree = binary_tree
 
-	def run(self):
+	def Decode(self):
 		#open file to extract encodings, afterwards, convert to dictionary
-		f = open('huffmanTree.dat', 'r')
-		encodings_str = f.readline()
+		in_file = open('huffmanOutput.dat', 'r')
+		encodings_str = in_file.readline()
 		encodings_dict = eval(encodings_str)
 
 		#recreate huffman tree using encodings and recursive function addNode
@@ -158,7 +165,6 @@ class huffmanDecode:
 		#we then need to convert each character into a binary string, and then make sure that
 		#each string's length is equal to 8 bits. We then join all of the bits into one string
 		#called binary_input
-		in_file = open('huffmanOutput.dat', 'r')
 		binary_input = ''
 		for i in in_file:
 			d = list(i)
@@ -185,6 +191,14 @@ class huffmanDecode:
 			out_file.write(i)
 		out_file.close()
 
+#combined encoder and decoder
+class huffmanMaster(huffmanEncode, huffmanDecode):
+	def __init__(self, binary_tree):
+		self.binary_tree = binary_tree
+
+	def run(self):
+		self.Encode()
+		self.Decode()
 
 def removeDuplicates(ary):
 	'''(list) -> list
@@ -318,10 +332,6 @@ def make_eight_bit(num):
 if __name__ == '__main__':
 	temp_node = TreeNode()
 	temp_tree = Tree(temp_node)
-	var = huffmanEncode(temp_tree)
-	var.open('data.dat')
+	var = huffmanMaster(temp_tree)
 	var.run()
-	dec = huffmanDecode(temp_tree)
-	dec.run()
-
 	
